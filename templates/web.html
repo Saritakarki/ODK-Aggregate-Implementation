@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> </title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+	<link rel="stylesheet" href="{{ url_for('static',filename='bootstrap-select-1.13.2/dist/css/bootstrap-select.css')}}">
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
+	
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="">ODK Aggregate</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item active">
+        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+      </li>
+       <li class="nav-item active">
+        <a class="nav-link" href="{{url_for('mapping')}}">CompareData <span class="sr-only">(current)</span></a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<br>
+	<form name="f1">
+			<div class="d-flex flex-row align-items-end" >
+			  <div class="p-2"><h6>Select Form</h6>
+			<select class="selectpicker" id="selectDom2" name="selectDom2"  data-size="5" onchange="selectSelected(this)" title="Nothing selected">
+			</select></div>
+			  <div class="p-2"><h6>Select Columns</h6>
+			<select class="selectpicker" id="selectDom1" name="selectDom" multiple data-size="5" >
+			</select>
+			</div>
+			</form>
+			  <div class="p-2"><button  class="btn btn-success"  id="button_view" type="button">View</button></div>
+			</div>
+	<!-- <table id="table">
+</table> -->
+	<div  class="container-fluid">
+		<div class="card">
+		<h3 id="title" style="text-align: center;">
+			
+		</h3>
+			<div id="tablediv" class="card-body"></div>
+		</div>
+	</div>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="{{ url_for('static',filename='bootstrap-select-1.13.2/dist/js/bootstrap-select.js')}}"></script>
+<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+<script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+
+<script type="text/javascript">
+
+ function getDatas(arg) {
+		var html="";
+		arg.forEach(function(value){
+		html+= "<option value="+value+">"+value+"</option>";
+		});
+     $("#selectDom2").html(html);
+     $('#selectDom2').selectpicker('refresh');
+	}
+
+// function getTable(arg){
+// 	$('#table').DataTable( {
+
+//          "columnDefs": [
+
+//              {"className": "dt-left", "targets": "_all"}
+
+//              ],
+
+//             bDestroy: true,
+//            data: arg['data'],
+
+//            columns: arg['column']
+
+//          } );
+
+// }
+
+	function getTable(arg){
+
+    $('#tablediv').empty();
+
+    $('#tablediv').append('<table id="table" class="table table-bordered" ></table>');
+
+    $('#table').DataTable( {
+     data: arg['data'],
+
+     columns: arg['column']
+
+   });
+
+}
+
+	function selectSelected(thiss){
+		var form_id= $(thiss).val();
+
+		$.ajax({
+
+   		type: 'POST',
+
+  		 url: "getcolumn",
+  		 data:form_id,
+
+   		contentType: "application/text",
+
+   		success: function (response) {
+
+     	var statesData=JSON.parse(response);
+     	getData(statesData);
+     	$('#title').html(form_id);
+     	 $('#tablediv').empty();
+     }
+ })
+	}
+
+	var newvar={{fdata|safe}}
+	$(document).ready(function(){
+		$('.selectpicker').selectpicker();
+     getDatas(newvar)
+	});
+	
+	function getData(arg) {
+		var html="";
+		arg.forEach(function(value){
+		if(value!=null){
+		html+= "<option value="+value+">"+value+"</option>";
+		}});
+     $("#selectDom1").html(html);
+     $('#selectDom1').selectpicker('refresh');
+
+	}
+
+
+ $(document).ready(function(){
+      var statesData=""
+	 $('#button_view').click(function(event){ 
+	 $('#myTable').empty();	
+	 if(statesData){
+	 getTable(statesData);}
+   var fname= $('#selectDom2').val();
+   var cname= $('#selectDom1').val();
+   data= {form_name: fname, column_name: cname}
+   
+   $.ajax({
+   	
+
+  		url: "getdata",
+  		type: 'POST',
+
+  		data: JSON.stringify(data),
+  		
+   		contentType: "application/json",
+
+   		success: function (response) {
+     	var statesData=JSON.parse(response);
+     	print(JSON.stringify(statesData));
+        getTable(statesData)
+     },
+     error: function(err){
+     	alert("error");
+     },
+
+  	
+ });
+
+ });
+});
+function print(args){
+return console.log(args);
+}
+</script>
+<!-- <script type="text/javascript">
+	$('.selectpicker').selectpicker();
+
+</script> -->
+
+</body>
+
+
+</html>
